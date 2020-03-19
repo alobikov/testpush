@@ -14,9 +14,9 @@ import 'package:provider/provider.dart';
 // const String MASTER_KEY = 'lTkaAkYe0jKDFfFEpdWZmgs8jqQwBqwlQyDjKPBS';
 // const String LIVE_QUERY_URL = 'wss://laleks.back4app.io';
 
-const String CURRENT_RELEASE = 'version 0.1.4';
+const String CURRENT_RELEASE = 'version 0.1.6';
 
-void main() {
+void main() async {
   runApp(
     RestartWidget(
       child: InitApp(),
@@ -33,22 +33,21 @@ class _InitAppState extends State<InitApp> {
   // ! executed during hot reload
   @protected
   @mustCallSuper
-  void reassemble() {
+  void reassemble() async {
     super.reassemble();
     print('');
-    print(
-        '============================================================================');
+    print('======================== reassemble ==========================');
   }
 
   @override
   dispose() {
-    print(
-        '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
+    print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    print('++++++++++++++++++++++ InitAppState ++++++++++++++++++++++++++');
     return ChangeNotifierProvider(
       create: (context) => RegisterBloc(),
       child: MyApp(),
@@ -64,6 +63,7 @@ class MyApp extends StatelessWidget {
     // initialization of application made in two step, first one below,
     // the second in InitialData of StreamBuilder
     final _bloc = Provider.of<RegisterBloc>(context, listen: false);
+    // _bloc.initData();
     _bloc.event.add(InitializeApp());
     return MaterialApp(
       title: 'Notify',
@@ -115,6 +115,7 @@ class MyApp extends StatelessWidget {
                     revert: _errorHandler.revert);
 
               case AppState.reset:
+                print('AppState.reset in main()');
                 WidgetsBinding.instance.addPostFrameCallback(
                     (_) => RestartWidget.restartApp(context));
                 ;
@@ -147,6 +148,7 @@ class _RestartWidgetState extends State<RestartWidget> {
   Key key = UniqueKey();
 
   void restartApp() {
+    print('hhhhhhhhhhhh RestartApp() hhhhhhhhhhhhhhhh');
     setState(() {
       key = UniqueKey();
     });
@@ -154,6 +156,7 @@ class _RestartWidgetState extends State<RestartWidget> {
 
   @override
   Widget build(BuildContext context) {
+    print('hhhhhhhhhhhh build RestartApp() hhhhhhhhhhhhhhhh');
     return KeyedSubtree(
       key: key,
       child: widget.child,

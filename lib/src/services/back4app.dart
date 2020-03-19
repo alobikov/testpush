@@ -137,19 +137,20 @@ class ParseService {
         //! Users record belong to this user on this device - do nothing more
         return null;
       }
-      //! deviceId not found in Users table then check for user using another device
+      //! deviceId not found in Users table then check for this user using another device
       var queryResult = await queryUsersColumnEqualTo('username', form.name);
       if (queryResult != null) {
         //! found user on another device 'Swapping Device'
         //! delete the record
         print("***************found user on another device 'Swapping Device'");
         await deleteByObjectID('Users', queryResult[0]['objectId']);
-        //! and create new Users table record
-        print('********Creating new record in Users ***********');
-        form.setField({'objectId': user.objectId});
-        print('objectId: ${user.objectId}');
-        await _createSelfUser(form);
       }
+      //! and create new Users table record
+      print('********Creating new record in Users ***********');
+      form.setField({'objectId': user.objectId});
+      print('objectId: ${user.objectId}');
+      await _createSelfUser(form);
+
       return null;
     } else {
       //! login failed with message

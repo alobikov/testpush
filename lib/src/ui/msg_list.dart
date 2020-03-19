@@ -27,7 +27,7 @@ class _MsgListState extends State<MsgList> {
         separatorBuilder: (context, index) => Divider(
               color: Color(0xFF167F67),
             ),
-        padding: const EdgeInsets.all(6.0),
+        padding: const EdgeInsets.all(1.0),
         itemCount: null == _msg.messages ? 0 : _msg.messages.length,
         itemBuilder: /*1*/ (context, i) {
           return _buildRow(_msg.messages[i]);
@@ -52,15 +52,18 @@ class _MsgListState extends State<MsgList> {
           Row(
             children: <Widget>[
               Container(
-                child: Text('from: ${message.from}' ?? 'null',
-                    overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontWeight: FontWeight.bold),),
-
+                child: Text(
+                  'from: ${message.from}' ?? 'null',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
               Spacer(),
               Container(
-                child: Text(message.timestamp ?? 'null',
-                  style: TextStyle(fontWeight: FontWeight.bold),),
+                child: Text(
+                  message.timestamp ?? 'null',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 // formatDate(message.timestamp, dateformat).toString()),
               ),
             ],
@@ -72,7 +75,6 @@ class _MsgListState extends State<MsgList> {
                   message.body ?? 'null',
                   overflow: TextOverflow.ellipsis,
                   maxLines: 5,
-
                 ),
               ),
             ],

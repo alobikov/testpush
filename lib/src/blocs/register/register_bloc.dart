@@ -90,6 +90,7 @@ class RegisterBloc extends ChangeNotifier {
       RegisterInitFields.advanceToNextUser();
       print('RegisterFormFields: ${_registerFormFields.show()}');
       notifyListeners();
+      return;
       //
       //***************************************/
       //* Register User event handler
@@ -115,6 +116,7 @@ class RegisterBloc extends ChangeNotifier {
             _registerFormFields.name, _msg, _regFormEventCtrl.sink);
         _inState.add(AppState.authenticated); // show Home()
       }
+      return;
       //
       //***************************************/
       //* SignIn event handler - Signin button pressed
@@ -140,29 +142,33 @@ class RegisterBloc extends ChangeNotifier {
         // and generate event via provided sink
         _inState.add(AppState.authenticated); // showHome()
       }
+      return;
       //
       //***************************************/
       //* Navigate to SendMessageForm
     } else if (event is SendMessageFormEvent) {
-      // String deviceid = await DeviceId.getID;
-      // print(deviceid);
+      String deviceid = await DeviceId.getID;
+      print('^^^^^^^^^^^^^^^^^^^^^^ DeviceID: $deviceid');
       // await _b4a.getAllUsers();
       _inState.add(AppState.sendMessageForm);
+      return;
       //
       //***************************************/
       //* SignOut event handler
     } else if (event is UserLogoutEvent) {
-      // await _liveQuery?.unSubscribe();
-      print('RegisterBloc: killing the query');
+      _inState.add(AppState.loading);
       await _b4a.logout();
       initData(); // show Signin()
+      return;
 
       //**************************************/
       //* toggle Register UI to Signin UI
     } else if (event is SwitchToSigninEvent) {
       _inState.add(AppState.unauthenticated);
+      return;
     } else if (event is SwitchToRegisterEvent) {
       _inState.add(AppState.unregistred);
+      return;
       //
       //**************************************/
       //* Application Initializing
@@ -179,12 +185,14 @@ class RegisterBloc extends ChangeNotifier {
       String title = 'From: ${event.msg.from} @ ${event.msg.timestamp}';
       await _showNotification(title, event.msg.body);
       _inState.add(AppState.authenticated); // redraw Home() with new message
+      return;
 
       //**************************************/
       //* Return to Home Screen event handling
     } else if (event is NavigateToHomeEvent) {
       _inState.add(AppState.authenticated);
     }
+    return;
   }
 
   String getFormFieldFor(String field) {
@@ -192,8 +200,8 @@ class RegisterBloc extends ChangeNotifier {
   }
 
   initData() async {
-    Future.delayed(Duration(seconds: 12)).then((v) {
-      print('Network timeout -----------------');
+    Future.delayed(Duration(seconds: 12)).then((_) {
+      print('---------------- Network Waiting Timeout -----------------');
       checkOnNetworkTimeout();
     });
 
@@ -209,6 +217,7 @@ class RegisterBloc extends ChangeNotifier {
         initializationSettings,
         onSelectNotification: onSelectNotification);
     //! initializing Back4App service
+    await Future.delayed(Duration(seconds: 2));
     await _b4a.initParse();
     // ! initialize connection status watch dog
     connectionStatus.initialize();
@@ -236,6 +245,7 @@ class RegisterBloc extends ChangeNotifier {
   }
 
   Future _initMessageHandler() async {
+    print('InitMessageHandler()');
     await _b4a.readMessages(_msg,
         _registerFormFields.name); // read all Messages from server for selfuser
     print('Message read completed');
