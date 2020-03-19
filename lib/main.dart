@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 // const String MASTER_KEY = 'lTkaAkYe0jKDFfFEpdWZmgs8jqQwBqwlQyDjKPBS';
 // const String LIVE_QUERY_URL = 'wss://laleks.back4app.io';
 
-const String CURRENT_RELEASE = 'version 0.1.2';
+const String CURRENT_RELEASE = 'version 0.1.4';
 
 void main() {
   runApp(

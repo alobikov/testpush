@@ -279,10 +279,11 @@ class RegisterBloc extends ChangeNotifier {
 
   checkOnNetworkTimeout() {
     if (uiState == UIState.loading) {
-      _errorHandler.revert = SwitchToRegisterEvent();
+      _errorHandler.revert = SwitchToSigninEvent();
       _errorHandler.message =
           "Network connection to slow or lost, please try again later.";
       _inState.add(AppState.error);
+      uiState = UIState.zero;
     }
   }
 

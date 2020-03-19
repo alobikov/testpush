@@ -85,8 +85,8 @@ class _AppDrawerState extends State<AppDrawer> {
             leading: Icon(Icons.clear),
             title: Text('Exit Notify'),
             onLongPress: () {
-              RestartWidget.restartApp(context);
-              // SystemNavigator.pop();
+              // RestartWidget.restartApp(context);
+              SystemNavigator.pop();
             },
           ),
         ],
