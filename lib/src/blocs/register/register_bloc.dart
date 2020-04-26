@@ -31,6 +31,7 @@ class RegisterBloc extends ChangeNotifier {
   final _addressees = Addressees();
   final _errorHandler = ErrorHandler.instance;
   final _registerFormFields;
+  RegisterInitFields initFields;
   UIState uiState;
   var _liveQuery;
   bool showRegister = true;
@@ -44,8 +45,6 @@ class RegisterBloc extends ChangeNotifier {
       ConnectionStatusSingleton.getInstance();
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-
-  RegisterInitFields initFields;
 
   StreamController _appStateCtrl = StreamController<AppState>();
   Stream<AppState> get appState => _appStateCtrl.stream;
@@ -77,7 +76,7 @@ class RegisterBloc extends ChangeNotifier {
     formState.listen((form) {
       print('formState in Bloc received: $form');
       _registerFormFields.setField(form);
-      // print('Current state of RegFormFields ${_registerFormFields.show()}');
+      print('Current state of RegFormFields ${_registerFormFields.show()}');
     });
   }
 
@@ -280,7 +279,10 @@ class RegisterBloc extends ChangeNotifier {
       print(uiState);
       // reset app for proper initializationof LiveQuery with delay
       await Future.delayed(Duration(seconds: 7));
-      _inState.add(AppState.reset);
+      _liveQuery = await _b4a.initiateLiveQuery(
+          _registerFormFields.name, _msg, _regFormEventCtrl.sink);
+      // _inState.add(AppState.reset);
+      // initData();
     } else {
       print('@@@@@@@@@ Inetrnet lost @@@@@@@@@');
       print(uiState);

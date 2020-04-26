@@ -55,7 +55,12 @@ class RegisterFormFields extends RegisterState {
 
   set deviceId(str) => form['deviceId'] = str;
 
-  void setField(Map<String, dynamic> field) => form.addAll(field);
+  void setField(Map<String, dynamic> field) {
+    field.forEach((k, v) {
+      field[k] = v.trim();
+    });
+    form.addAll(field);
+  }
 
   String getField(String field) => form[field];
 

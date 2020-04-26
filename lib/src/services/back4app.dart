@@ -34,7 +34,7 @@ class ParseService {
     var response = await Parse().healthCheck();
     if (response.success) {
       print('Back4app server is OK');
-      liveQuery = LiveQuery(debug: true);
+      liveQuery = LiveQuery(debug: false);
       // createItem();
       // getAllItemsByName();
     } else {
@@ -51,8 +51,8 @@ class ParseService {
           ..whereEqualTo('to', selfuser);
     // create subscription
 //    await liveQuery.unSubscribe();
-    await liveQuery.subscribe(query);
-    liveQuery.on(LiveQueryEvent.create, (value) {
+    await liveQuery?.subscribe(query);
+    liveQuery?.on(LiveQueryEvent.create, (value) {
       print(
           '*** LIVE QUERY RECEIVED ***: ${DateTime.now().toString()}\n $value ');
       NotyMessage msg = NotyMessage(
@@ -113,8 +113,8 @@ class ParseService {
     ParseResponse response = await user.login();
     if (response.success) {
       user = response.result;
-      form.setField({'objectId': user.objectId});
-      print('objectId: ${user.objectId}');
+      form.setField({'objectId': user.objectId, 'name': user.username});
+      print('objectId: ${user.objectId} ${user.username}');
       //! user logged in! now check Users table for this deviceId
       //! if found check for deviceId and this username match
       var apiResponse =
