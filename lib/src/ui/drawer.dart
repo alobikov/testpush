@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:notify/main.dart';
 import 'package:notify/src/blocs/register/register_bloc.dart';
-import 'package:notify/src/ui/profile.dart';
+import 'package:notify/src/ui/profile_info.dart';
 import 'package:provider/provider.dart';
 
 class AppDrawer extends StatefulWidget {
@@ -51,8 +51,8 @@ class _AppDrawerState extends State<AppDrawer> {
             ),
           ),
           ListTile(
-            leading: Icon(Icons.person_outline),
-            title: Text('Logout'),
+            leading: Icon(Icons.account_circle),
+            title: Text('Change Profile'),
             onTap: () async {
               _blocP.event.add(UserLogoutEvent());
               Navigator.pop(context);
@@ -60,11 +60,11 @@ class _AppDrawerState extends State<AppDrawer> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.account_circle),
-            title: Text('Profile'),
+            leading: Icon(Icons.info_outline),
+            title: Text('Info'),
             onTap: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => Profile()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ProfileInfo()));
             },
           ),
           ListTile(
@@ -82,8 +82,17 @@ class _AppDrawerState extends State<AppDrawer> {
             },
           ),
           ListTile(
+            leading: Icon(Icons.person_outline),
+            title: Text('Logout'),
+            onTap: () async {
+              _blocP.event.add(UserLogoutEvent());
+              Navigator.pop(context);
+              // Navigator.popAndPushNamed(context, '/wrapper');
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.clear),
-            title: Text('Exit Notify'),
+            title: Text('Exit Notify *press and hold*'),
             onLongPress: () {
               // RestartWidget.restartApp(context);
               SystemNavigator.pop();

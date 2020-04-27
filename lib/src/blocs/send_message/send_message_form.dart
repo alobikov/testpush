@@ -60,42 +60,20 @@ class _SendFormState extends State<SendForm> {
                         );
                       }),
                   Spacer(),
-                  RaisedButton(
-                    child: Text('Send'),
-                    onPressed: _text != null
-                        ? () {
-                            _bloc.inForm.add(SendMsgAction(
-                              action: FormAction.submit,
-                              body: _text,
-                              to: _menuValue,
-                              from: user.name,
-                              //! replace by Navigator.pop()
-                              // fun: Provider.of<RegisterBloc>(
-                              //         context, //* I don't have coomunication between
-                              //         listen:
-                              //             false) //* RegisterBloc and SendMessageBloc
-                              //     .event //* so need to using this strange way
-                              //     .add, //* for communication
-                            ));
-                            Navigator.pop(context);
-                          }
-                        : null,
-                  ),
                 ],
               ),
-              Text('Message:', style: TextStyle(fontSize: 16)),
+              // Text('Message:', style: TextStyle(fontSize: 16)),
               SizedBox(height: 10.0),
               Container(
                 padding: EdgeInsets.symmetric(vertical: 10.0),
                 color: Colors.white,
                 child: TextField(
-                  // controller: _controller,
                   onChanged: (val) {
                     setState(() {
                       _text = val;
                     });
                   },
-                  maxLines: 3,
+                  maxLines: 2,
                   decoration: InputDecoration(
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: 10.0),
@@ -103,7 +81,28 @@ class _SendFormState extends State<SendForm> {
                   ),
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 6),
+              RaisedButton(
+                child: Text('Send Message'),
+                onPressed: _text != null
+                    ? () {
+                        _bloc.inForm.add(SendMsgAction(
+                          action: FormAction.submit,
+                          body: _text,
+                          to: _menuValue,
+                          from: user.name,
+                          //! replace by Navigator.pop()
+                          // fun: Provider.of<RegisterBloc>(
+                          //         context, //* I don't have coomunication between
+                          //         listen:
+                          //             false) //* RegisterBloc and SendMessageBloc
+                          //     .event //* so need to using this strange way
+                          //     .add, //* for communication
+                        ));
+                        Navigator.pop(context);
+                      }
+                    : null,
+              ),
             ],
           ),
         ),

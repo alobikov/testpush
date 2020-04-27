@@ -27,5 +27,10 @@ class NewMessage extends RegisterEvent {
   final _msg;
   NotyMessage get msg => _msg;
 }
+class SubmitEdaUser extends RegisterEvent {
+  final String username;
+
+  SubmitEdaUser(this.username);
+}
 
 class NavigateToHomeEvent extends RegisterEvent {}

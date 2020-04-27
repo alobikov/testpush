@@ -26,6 +26,7 @@ dependencies:
   equatable: ^1.1.1
   flutter_local_notifications:
   connectivity: ^0.4.8+2
+  device_info: ^0.4.2+2
   
 
 

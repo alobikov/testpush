@@ -5,9 +5,12 @@ import 'package:notify/src/blocs/register/register_bloc.dart';
 import 'package:notify/src/models/addressees.dart';
 import 'package:notify/src/models/message.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
+import 'package:device_info/device_info.dart';
 
 class ParseService {
   LiveQuery liveQuery;
+  bool isEda = false;
+  String deviceId;
 
   static final ParseService _instance = ParseService._internal();
   factory ParseService() => _instance;
@@ -18,19 +21,45 @@ class ParseService {
   static const String MASTER_KEY = 'lTkaAkYe0jKDFfFEpdWZmgs8jqQwBqwlQyDjKPBS';
   static const String LIVE_QUERY_URL = 'wss://notifyme.back4app.io';
   static const String CLIENT_KEY = '7nsbXEBwo8vRCpdr5Xua2SdnQ1k41M3tg8VHX0SR';
+  static const String REST_API_KEY = 'xQXI9GRGAOEi8t8392dm64YMw8U5SFjKaILcG7FU';
 
   Future<String> initParse() async {
     print('Back4app: Attempting to initialize back4app');
-    await Parse().initialize(
-      PARSE_APP_ID, PARSE_APP_URL,
-      // masterKey: MASTER_KEY,
-      clientKey: CLIENT_KEY,
-      liveQueryUrl: LIVE_QUERY_URL,
-      autoSendSessionId: true,
-      debug: false,
-      coreStore: await CoreStoreSharedPrefsImp.getInstance(),
-    );
 
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    this.deviceId = await DeviceId.getID;
+    print('Running on ${androidInfo.model}');
+    if (androidInfo.model == 'EDA60K') this.isEda = true;
+    // print(androidInfo.id); //NMF26F
+    // print(androidInfo.device); //eda60k
+    //print(androidInfo.androidId); //6dab55fe7311494:
+
+    if (this.isEda) {
+      //* initialization for Honeywell
+      await Parse().initialize(
+        PARSE_APP_ID,
+        PARSE_APP_URL,
+        masterKey: MASTER_KEY,
+        clientKey: CLIENT_KEY,
+        liveQueryUrl: LIVE_QUERY_URL,
+        autoSendSessionId: true,
+        debug: false,
+        coreStore: await CoreStoreSharedPrefsImp.getInstance(),
+      );
+      print("B4A service initialized with MasterKey");
+    } else {
+      //* initialization for none Honeywell device
+      await Parse().initialize(
+        PARSE_APP_ID,
+        PARSE_APP_URL,
+        clientKey: CLIENT_KEY,
+        liveQueryUrl: LIVE_QUERY_URL,
+        autoSendSessionId: true,
+        debug: false,
+        coreStore: await CoreStoreSharedPrefsImp.getInstance(),
+      );
+    }
     var response = await Parse().healthCheck();
     if (response.success) {
       print('Back4app server is OK');
@@ -69,11 +98,6 @@ class ParseService {
     return liveQuery;
   }
 
-  // Future unSubscribe() async {
-  //   final LiveQuery liveQuery = LiveQuery(debug: true);
-  //   await liveQuery.unSubscribe();
-  // }
-
   /// returns null if success or error message
   Future<String> registerWith(RegisterFormFields form) async {
     var user = ParseUser(
@@ -103,6 +127,15 @@ class ParseService {
     } else {
       return response.error.message;
     }
+  }
+
+  Future<String> createEdaUser(username, form) async {
+    form.setField({'name': username});
+    form.setField({'deviceId': this.deviceId});
+    form.setField({'objectId': 'EDA60K'});
+    print(username);
+    print(form);
+    return await _createSelfUser(form);
   }
 
   ///! login user with complex logic
@@ -154,33 +187,65 @@ class ParseService {
       return null;
     } else {
       //! login failed with message
+
       return response.error.message;
     }
   }
 
   /// returns null if success or error message
   Future<String> logout() async {
-    var user = await ParseUser.currentUser();
-    print('Logout user $user');
-    if (user != null) {
-      // only if user logged in then logout
-      var response = await user.logout();
-      if (response.success)
-        print('User logout success');
-      else
-        print('User logout failed');
+    // first, unsubcribe for LiveQuery on Messages
+    unSubscribe(); 
+    if (this.isEda) {
+      return await deleteUserByDeviceId(this.deviceId);
+    } else {
+      var user = await ParseUser.currentUser();
+      print('Logout user $user');
+      if (user != null) {
+        // only if user logged in then logout
+        var response = await user.logout();
+        if (response.success)
+          print('User logout success');
+        else
+          print('User logout failed');
+      }
+      return null;
     }
-    return null;
   }
 
   /// Checks state of current user in Back4App
-  Future<bool> isLogged() async {
-    var user = await ParseUser.currentUser();
-    if (user == null)
-      return false;
-    else
-      // print('isLogged: ${user['username']}');
-      return true;
+  Future<Map> isLogged() async {
+    if (isEda) {
+      //* If user device is EDA then we using Master Key! means EDA is always logged  in :)
+      //* just double check that user record exists in Users collection
+      //* if not the null will be returned and ancestor will request name from user
+      //* and fireup user record creation
+      final result = await queryUsersColumnEqualTo('deviceId', this.deviceId);
+      print('   query result for user ${this.deviceId}: $result');
+      if (result == null) return null;
+      if (result.length > 1)
+        throw ('more then one record for given user in Users collection');
+      final mapa = {
+        'name': result[0]['username'],
+        'email': 'eda60@honeywell.com',
+        'objectId': result[0]['objectId'],
+        'deviceId': this.deviceId,
+      };
+      return mapa;
+    } else {
+      var user = await ParseUser.currentUser();
+      if (user == null)
+        return null;
+      else {
+        final mapa = {
+          'name': user['username'],
+          'email': user['email'],
+          'objectId': user['objectId'],
+          'deviceId': this.deviceId,
+        };
+        return mapa;
+      }
+    }
   }
 
   /// this information retieved from b4a User
@@ -202,7 +267,9 @@ class ParseService {
   }
 
   /// creates record of this.user in Users on b4a
-  _createSelfUser(form) async {
+  /// objectId updates form.objectId
+  /// return null if success otherwise error message
+  Future<String> _createSelfUser(form) async {
     String deviceid = await DeviceId.getID;
     form.deviceId = deviceid;
     var usersNewObject = ParseObject('Users')
@@ -210,11 +277,11 @@ class ParseService {
       ..set<String>('userObjId', form.objectId)
       ..set<String>('username', form.name);
     var response = await usersNewObject.create();
-    if (response.success && response.result != null)
-      print('User recorded in "Users" collection');
-    else
-      print('Users collection upfdate failed');
-    return null;
+    if (response.success && response.result != null) {
+      form.setField({'objectId': response.result['objectId']});
+      return null;
+    } else
+      return response.error.message;
   }
 
   Future createMessage({String to, String body, String from}) async {
@@ -233,8 +300,8 @@ class ParseService {
   }
 
   Future deleteByObjectID(String table, String id) async {
-    var collection = ParseObject(table);
-    var result = await collection.delete(id: id);
+    final collection = ParseObject(table);
+    final result = await collection.delete(id: id);
     print('Deleting object result ${result.result}');
     return result.result;
   }
@@ -301,17 +368,6 @@ class ParseService {
     return null;
   }
 
-  /// returns null or records in column which match query
-  Future queryUsersColumnEqualTo(String column, String match) async {
-    var queryBuilder = QueryBuilder<ParseObject>(ParseObject('Users'))
-      ..whereEqualTo(column, match);
-    var response = await queryBuilder.query();
-    if (response.success && response.result != null) {
-      return response.result;
-    }
-    return null;
-  }
-
   Future deleteAllMessages(String username) async {
     var queryBuilder = QueryBuilder<ParseObject>(ParseObject('Messages'))
       ..whereEqualTo('to', username);
@@ -321,6 +377,17 @@ class ParseService {
         await deleteByObjectID('Messages', id['objectId']);
       });
     }
+  }
+
+  /// returns null or list of records for 'column' which 'match'es the query
+  Future queryUsersColumnEqualTo(String column, String match) async {
+    var queryBuilder = QueryBuilder<ParseObject>(ParseObject('Users'))
+      ..whereEqualTo(column, match);
+    var response = await queryBuilder.query();
+    if (response.success && response.result != null) {
+      return response.result;
+    }
+    return null;
   }
 
   /// returns null or username registered with this deviceId
@@ -333,4 +400,25 @@ class ParseService {
     }
     return null;
   }
+
+  /// returns null on success otherwise error message
+  Future deleteUserByDeviceId(String deviceId) async {
+    var queryBuilder = QueryBuilder<ParseObject>(ParseObject('Users'))
+      ..whereEqualTo('deviceId', deviceId);
+    var response = await queryBuilder.query();
+    print('deleteUserByDeviceId(): ${response.result}');
+    if (response.success && response.result != null) {
+      response.result.forEach((data) async {
+        await deleteByObjectID('Users', data['objectId']);
+      });
+    } else {
+      return response.error.message;
+    }
+  }
+
+  Future unSubscribe() async {
+    final LiveQuery liveQuery = LiveQuery(debug: true);
+    await liveQuery.unSubscribe();
+  }
+
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notify/src/blocs/register/register_bloc.dart';
 import 'package:provider/provider.dart';
 
-class Profile extends StatelessWidget {
+class ProfileInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user =

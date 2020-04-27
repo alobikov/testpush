@@ -16,13 +16,22 @@ enum AppState {
   uninitialized,
   authenticated,
   unauthenticated,
+  unknownEDA,
   unregistred,
   sendMessageForm,
   loading,
   error,
   reset,
 }
-enum UIState { home, messageSendForm, loading, signin, zero, alertScreen }
+enum UIState {
+  home,
+  messageSendForm,
+  loading,
+  signin,
+  zero,
+  alertScreen,
+  introduce
+}
 
 class RegisterBloc extends ChangeNotifier {
   final _msg = Messages.instance;
@@ -30,7 +39,7 @@ class RegisterBloc extends ChangeNotifier {
   final _b4a = ParseService();
   final _addressees = Addressees();
   final _errorHandler = ErrorHandler.instance;
-  final _registerFormFields;
+  final registerFormFields;
   RegisterInitFields initFields;
   UIState uiState;
   var _liveQuery;
@@ -60,10 +69,10 @@ class RegisterBloc extends ChangeNotifier {
 
   StreamController _regFormEventCtrl = StreamController<RegisterEvent>();
   StreamSink<RegisterEvent> get event => _regFormEventCtrl.sink;
-  RegisterFormFields get getFormFields => _registerFormFields;
+  RegisterFormFields get getFormFields => registerFormFields;
 
   // ! Register Bloc constructor
-  RegisterBloc() : _registerFormFields = RegisterFormFields() {
+  RegisterBloc() : registerFormFields = RegisterFormFields() {
     print('!!!!!!!  Register block constructor invoked !!!!!!!!!');
 
     _regFormEventCtrl.stream.listen(_mapEventController);
@@ -75,8 +84,8 @@ class RegisterBloc extends ChangeNotifier {
     /// this stream used to receive data from TextFormFields
     formState.listen((form) {
       print('formState in Bloc received: $form');
-      _registerFormFields.setField(form);
-      print('Current state of RegFormFields ${_registerFormFields.show()}');
+      registerFormFields.setField(form);
+      print('Current state of RegFormFields ${registerFormFields.show()}');
     });
   }
 
@@ -85,9 +94,9 @@ class RegisterBloc extends ChangeNotifier {
     //* Populate Register/Signin form by mock user date
     if (event is PopulateFormEvent) {
       print('Populate button event');
-      _registerFormFields.setField(RegisterInitFields.getAll);
+      registerFormFields.setField(RegisterInitFields.getAll);
       RegisterInitFields.advanceToNextUser();
-      print('RegisterFormFields: ${_registerFormFields.show()}');
+      print('RegisterFormFields: ${registerFormFields.show()}');
       notifyListeners();
       return;
       //
@@ -99,7 +108,7 @@ class RegisterBloc extends ChangeNotifier {
       //* create account at BACK4APP if failed display error in AlertDialog
       await _b4a.logout(); //! but first make sure user not logged in
       _msg.clear(); // clear local message repository
-      var error = await _b4a.registerWith(_registerFormFields);
+      final error = await _b4a.registerWith(registerFormFields);
       if (error != null) {
         // Alert() is common usage UI and it needs additional information
         // The revert point is one of this
@@ -112,18 +121,17 @@ class RegisterBloc extends ChangeNotifier {
         await _initMessageHandler();
         // subscribe to LiveQuery on 'Messages'
         _liveQuery = await _b4a.initiateLiveQuery(
-            _registerFormFields.name, _msg, _regFormEventCtrl.sink);
+            registerFormFields.name, _msg, _regFormEventCtrl.sink);
         _inState.add(AppState.authenticated); // show Home()
       }
       return;
-      //
+    } else if (event is SigninFormEvent) {
       //***************************************/
       //* SignIn event handler - Signin button pressed
-    } else if (event is SigninFormEvent) {
       print('**********SignInFormEvent ');
       _inState.add(AppState.loading);
       _msg.clear(); // clear local message repository
-      var error = await _b4a.loginWith(_registerFormFields);
+      var error = await _b4a.loginWith(registerFormFields);
       if (error != null) {
         print("Login failed");
         // Alert() is common usage UI and it needs additional information
@@ -137,7 +145,7 @@ class RegisterBloc extends ChangeNotifier {
         await _initMessageHandler();
         // subscribe to LiveQuery on 'Messages'
         _liveQuery = await _b4a.initiateLiveQuery(
-            _registerFormFields.name, _msg, _regFormEventCtrl.sink);
+            registerFormFields.name, _msg, _regFormEventCtrl.sink);
         // and generate event via provided sink
         _inState.add(AppState.authenticated); // showHome()
       }
@@ -195,7 +203,7 @@ class RegisterBloc extends ChangeNotifier {
   }
 
   String getFormFieldFor(String field) {
-    return _registerFormFields.getField(field);
+    return registerFormFields.getField(field);
   }
 
   initData() async {
@@ -215,30 +223,32 @@ class RegisterBloc extends ChangeNotifier {
     bool res = await flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
         onSelectNotification: onSelectNotification);
+
     //! initializing Back4App service
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(Duration(seconds: 1));
     await _b4a.initParse();
     // ! initialize connection status watch dog
     connectionStatus.initialize();
     //! check for user status on Back4App
-    if (await _b4a.isLogged()) {
-      //* init RegisterFormFields since user is active in b4a
-      var user = await _b4a.getCurrentUser();
-      _registerFormFields.setField({
-        'name': user['username'],
-        'email': user['email'],
-        'objectId': user['objectId'],
-        'deviceId': await DeviceId.getID,
-      });
-      //!
+    var result = await _b4a.isLogged();
+    if (result != null) {
+      print('---------------------$result');
+      //* initialize RegisterFormFields since user is active in b4a
+      registerFormFields.setField(result);
+      //* read from server all messages addressed for this user
       await _initMessageHandler();
-      await _b4a.getAddressees(
-          _addressees); // read from server and prepare for use Addressees list
+      //* built list of contacts
+      await _b4a.getAddressees(_addressees);
+      //* subscrive for receiving of new messages
       await _b4a.initiateLiveQuery(
-          _registerFormFields.name, _msg, _regFormEventCtrl.sink);
+          registerFormFields.name, _msg, _regFormEventCtrl.sink);
       _inState.add(AppState.authenticated);
     } else {
-      _inState.add(AppState.unauthenticated);
+      if (_b4a.isEda)
+        _inState.add(AppState.unknownEDA);
+      //* otherwise go for full blown athentication
+      else
+        _inState.add(AppState.unauthenticated);
     }
     return;
   }
@@ -246,7 +256,7 @@ class RegisterBloc extends ChangeNotifier {
   Future _initMessageHandler() async {
     print('InitMessageHandler()');
     await _b4a.readMessages(_msg,
-        _registerFormFields.name); // read all Messages from server for selfuser
+        registerFormFields.name); // read all Messages from server for selfuser
     print('Message read completed');
     return null;
   }
@@ -280,7 +290,7 @@ class RegisterBloc extends ChangeNotifier {
       // reset app for proper initializationof LiveQuery with delay
       await Future.delayed(Duration(seconds: 7));
       _liveQuery = await _b4a.initiateLiveQuery(
-          _registerFormFields.name, _msg, _regFormEventCtrl.sink);
+          registerFormFields.name, _msg, _regFormEventCtrl.sink);
       // _inState.add(AppState.reset);
       // initData();
     } else {

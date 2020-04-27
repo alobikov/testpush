@@ -3,6 +3,7 @@ import 'package:notify/src/blocs/register/register_bloc.dart';
 import 'package:notify/src/blocs/send_message/send_message_form.dart';
 import 'package:notify/src/models/error_handler.dart';
 import 'package:notify/src/ui/home.dart';
+import 'package:notify/src/ui/introduce_yourself.dart';
 import 'package:notify/src/ui/register.dart';
 import 'package:notify/src/ui/signin.dart';
 import 'package:notify/src/ui/widgets/alert.dart';
@@ -14,7 +15,7 @@ import 'package:provider/provider.dart';
 // const String MASTER_KEY = 'lTkaAkYe0jKDFfFEpdWZmgs8jqQwBqwlQyDjKPBS';
 // const String LIVE_QUERY_URL = 'wss://laleks.back4app.io';
 
-const String CURRENT_RELEASE = 'version 0.1.9';
+const String CURRENT_RELEASE = 'version 0.2.0';
 
 void main() async {
   runApp(
@@ -90,6 +91,11 @@ class MyApp extends StatelessWidget {
                 print(_bloc.uiState);
                 return Signin();
 
+                case AppState.unknownEDA:
+                _bloc.uiState = UIState.introduce;
+                print(_bloc.uiState);
+                return IntroduceYourself();
+
               case AppState.unregistred:
                 return Register();
               case AppState.uninitialized:
@@ -118,7 +124,6 @@ class MyApp extends StatelessWidget {
                 print('AppState.reset in main()');
                 WidgetsBinding.instance.addPostFrameCallback(
                     (_) => RestartWidget.restartApp(context));
-                ;
                 _bloc.uiState = UIState.loading;
                 print(_bloc.uiState);
                 return LoadingIndicator();

@@ -45,7 +45,7 @@ class RegisterInitFields {
 }
 
 class RegisterFormFields extends RegisterState {
-  Map<String, dynamic> form = Map();
+  Map<dynamic, dynamic> form = Map();
 
   String get name => form['name'];
   String get email => form['email'];
@@ -55,7 +55,7 @@ class RegisterFormFields extends RegisterState {
 
   set deviceId(str) => form['deviceId'] = str;
 
-  void setField(Map<String, dynamic> field) {
+  void setField(Map<dynamic, dynamic> field) {
     field.forEach((k, v) {
       field[k] = v.trim();
     });
@@ -65,4 +65,8 @@ class RegisterFormFields extends RegisterState {
   String getField(String field) => form[field];
 
   void show() => form;
+
+  String toString() {
+    return 'Register Form Fields: $name, $email, $password, $objectId, $deviceId';
+  }
 }

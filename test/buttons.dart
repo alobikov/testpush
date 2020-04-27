@@ -13,17 +13,6 @@ class Buttoons extends StatelessWidget {
     );
   }
 }
-// ! Container with constraints and clip
-Widget showroom() {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 50),
-    alignment: Alignment.topCenter,
-    child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 370, maxHeight: 600),
-        child: ClipRRect(
-            borderRadius: BorderRadius.circular(5.0), child: child)),
-  );
-}
 
 class HomePageViewModel {
   final bool isLoading;
