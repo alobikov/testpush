@@ -2,7 +2,7 @@ import 'package:notify/src/blocs/register/register_bloc.dart';
 
 class ErrorHandler {
   String message;
-  RegisterEvent revert;
+  RegisterEvent revertEvent;
 
   ErrorHandler._privateConstructor();
 

@@ -62,24 +62,23 @@ class ParseService {
     }
     var response = await Parse().healthCheck();
     if (response.success) {
-      print('Back4app server is OK');
       liveQuery = LiveQuery(debug: false);
-      // createItem();
-      // getAllItemsByName();
+      print(
+          'Back4app server is OK, instantiating liveQuery#: ${liveQuery.hashCode}');
     } else {
       print("Server health check failed");
     }
     return 'initParse() is complete';
   }
 
-  Future initiateLiveQuery(
-      String selfuser, Messages _msg, StreamSink sink) async {
+  Future initiateLiveQuery(String selfuser, Messages _msg, StreamSink sink,
+      {mark}) async {
     await ParseUser.currentUser();
     QueryBuilder<ParseObject> query =
         QueryBuilder<ParseObject>(ParseObject('Messages'))
           ..whereEqualTo('to', selfuser);
     // create subscription
-//    await liveQuery.unSubscribe();
+    // await liveQuery.unSubscribe();
     await liveQuery?.subscribe(query);
     liveQuery?.on(LiveQueryEvent.create, (value) {
       print(
@@ -94,7 +93,7 @@ class ParseService {
           msg)); //* Notify RegisterBlock about new message and pass the message instance
     });
 //    await liveQuery.unSubscribe();
-    print('LiveQuery in mwthod ${liveQuery.hashCode}');
+    print('LiveQuery in method $mark - ${liveQuery.hashCode}');
     return liveQuery;
   }
 
@@ -193,9 +192,9 @@ class ParseService {
   }
 
   /// returns null if success or error message
-  Future<String> logout() async {
+  Future<String> logout(liveQuery) async {
     // first, unsubcribe for LiveQuery on Messages
-    unSubscribe(); 
+    unSubscribe(liveQuery);
     if (this.isEda) {
       return await deleteUserByDeviceId(this.deviceId);
     } else {
@@ -231,8 +230,10 @@ class ParseService {
         'objectId': result[0]['objectId'],
         'deviceId': this.deviceId,
       };
+      //TODO live query initiation needed
       return mapa;
     } else {
+      //* this is flow for none EDA users
       var user = await ParseUser.currentUser();
       if (user == null)
         return null;
@@ -416,9 +417,8 @@ class ParseService {
     }
   }
 
-  Future unSubscribe() async {
-    final LiveQuery liveQuery = LiveQuery(debug: true);
+  Future unSubscribe(liveQuery) async {
+    print('Unsubscribing liveQuery#: ${liveQuery.hashCode}');
     await liveQuery.unSubscribe();
   }
-
 }

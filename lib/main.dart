@@ -31,7 +31,7 @@ class InitApp extends StatefulWidget {
 }
 
 class _InitAppState extends State<InitApp> {
-  // ! executed during hot reload
+  // ! executed during hot reload - 'r' key press
   @protected
   @mustCallSuper
   void reassemble() async {
@@ -118,7 +118,7 @@ class MyApp extends StatelessWidget {
                 print(_bloc.uiState);
                 return Alert(
                     message: _errorHandler.message,
-                    revert: _errorHandler.revert);
+                    revert: _errorHandler.revertEvent);
 
               case AppState.reset:
                 print('AppState.reset in main()');
@@ -148,6 +148,8 @@ class RestartWidget extends StatefulWidget {
   @override
   _RestartWidgetState createState() => _RestartWidgetState();
 }
+
+
 
 class _RestartWidgetState extends State<RestartWidget> {
   Key key = UniqueKey();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notify/shared/dialogs.dart';
 import 'package:notify/src/blocs/register/register_bloc.dart';
+import 'package:notify/src/services/back4app.dart';
 import 'package:provider/provider.dart';
 
 class SigninForm extends StatefulWidget {
@@ -14,10 +15,15 @@ class SigninForm extends StatefulWidget {
 
 class _SigninFormState extends State<SigninForm> {
   final _formKey = GlobalKey<FormState>();
+  final _b4a = ParseService();
 
   @override
   Widget build(BuildContext context) {
     final _blocP = Provider.of<RegisterBloc>(context, listen: false);
+    if (_b4a.isEda) {
+      print('!!!! EDA60 user redirected from SigninForm, how he got there? !!!!');
+      _blocP.event.add(NavigateToHomeEvent());
+    }
     return StreamBuilder(
       stream: _blocP.initiateState,
       initialData: null,

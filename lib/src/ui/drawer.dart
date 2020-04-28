@@ -16,90 +16,98 @@ class _AppDrawerState extends State<AppDrawer> {
     final _blocP = Provider.of<RegisterBloc>(context, listen: false);
 
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          Container(
-            height: 120.0,
-            child: DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xFF02BB9F),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      // IconButton(
-                      //   padding: EdgeInsets.all(0.0),
-                      //   onPressed: () {
-                      //     Navigator.pop(context);
-                      //   },
-                      //   icon: Icon(Icons.arrow_back),
-                      // ),
-                      Text(
-                        'Notify settings',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            Container(
+              height: 120.0,
+              child: DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Color(0xFF02BB9F),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        // IconButton(
+                        //   padding: EdgeInsets.all(0.0),
+                        //   onPressed: () {
+                        //     Navigator.pop(context);
+                        //   },
+                        //   icon: Icon(Icons.arrow_back),
+                        // ),
+                        Text(
+                          'Notify settings',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        Text(
+                          _blocP.getFormFields.name,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          ListTile(
-            leading: Icon(Icons.account_circle),
-            title: Text('Change Profile'),
-            onTap: () async {
-              _blocP.event.add(UserLogoutEvent());
-              Navigator.pop(context);
-              // Navigator.popAndPushNamed(context, '/wrapper');
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('Info'),
-            onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => ProfileInfo()));
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('About'),
-            onTap: () {
-              _about();
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.arrow_back),
-            title: Text('Close'),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.person_outline),
-            title: Text('Logout'),
-            onTap: () async {
-              _blocP.event.add(UserLogoutEvent());
-              Navigator.pop(context);
-              // Navigator.popAndPushNamed(context, '/wrapper');
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.clear),
-            title: Text('Exit Notify *press and hold*'),
-            onLongPress: () {
-              // RestartWidget.restartApp(context);
-              SystemNavigator.pop();
-            },
-          ),
-        ],
-      ),
+            ListTile(
+              leading: Icon(Icons.account_circle),
+              title: Text('Change profile'),
+              onTap: () async {
+                _blocP.event.add(UserLogoutEvent());
+                Navigator.pop(context);
+                // Navigator.popAndPushNamed(context, '/wrapper');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.info_outline),
+              title: Text('Info'),
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ProfileInfo()));
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('About'),
+              onTap: () {
+                _about();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.arrow_back),
+              title: Text('Close'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person_outline),
+              title: Text('Logout'),
+              onTap: () async {
+                _blocP.event.add(UserLogoutEvent());
+                Navigator.pop(context);
+                // Navigator.popAndPushNamed(context, '/wrapper');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.clear),
+              title: Text('Exit Notify  *press and hold'),
+              onLongPress: () {
+                // RestartWidget.restartApp(context);
+                SystemNavigator.pop();
+              },
+            ),
+          ],
+        ),
     );
   }
 

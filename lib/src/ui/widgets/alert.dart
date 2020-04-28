@@ -19,9 +19,14 @@ class Alert extends StatelessWidget {
           actions: <Widget>[
             FlatButton(
               child: Text('Dismiss'),
-              onPressed: () => Provider.of<RegisterBloc>(context, listen: false)
-                  .event
-                  .add(revert),
+              onPressed: () {
+                if (revert != null)
+                  Provider.of<RegisterBloc>(context, listen: false)
+                      .event
+                      .add(revert);
+                else
+                  Navigator.pop(context);
+              },
             ),
           ],
         ),

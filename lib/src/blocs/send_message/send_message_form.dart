@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:notify/src/blocs/register/register_bloc.dart';
 import 'package:notify/src/blocs/send_message/send_bloc.dart';
+import 'package:notify/src/ui/widgets/alert.dart';
+import 'package:notify/utils/connection_status.dart';
 import 'package:provider/provider.dart';
 
 class SendForm extends StatefulWidget {
@@ -11,6 +13,8 @@ class SendForm extends StatefulWidget {
 class _SendFormState extends State<SendForm> {
   final _bloc = SendMessageBloc();
   String _menuValue, _text;
+  ConnectionStatusSingleton connectionStatus =
+      ConnectionStatusSingleton.getInstance();
 
   @override
   dispose() {
@@ -84,22 +88,27 @@ class _SendFormState extends State<SendForm> {
               SizedBox(height: 6),
               RaisedButton(
                 child: Text('Send Message'),
-                onPressed: _text != null
+                onPressed: _text != null && _menuValue != null
                     ? () {
-                        _bloc.inForm.add(SendMsgAction(
-                          action: FormAction.submit,
-                          body: _text,
-                          to: _menuValue,
-                          from: user.name,
-                          //! replace by Navigator.pop()
-                          // fun: Provider.of<RegisterBloc>(
-                          //         context, //* I don't have coomunication between
-                          //         listen:
-                          //             false) //* RegisterBloc and SendMessageBloc
-                          //     .event //* so need to using this strange way
-                          //     .add, //* for communication
-                        ));
-                        Navigator.pop(context);
+                        if (connectionStatus.hasConnection) {
+                          _bloc.inForm.add(SendMsgAction(
+                            action: FormAction.submit,
+                            body: _text,
+                            to: _menuValue,
+                            from: user.name,
+                          ));
+                          Navigator.pop(context);
+                        } else
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Alert(
+                                message:
+                                    "Internet connection lost! Service not availible!",
+                                revert: null,
+                              ),
+                            ),
+                          );
                       }
                     : null,
               ),

@@ -7,6 +7,7 @@ import 'package:notify/src/models/error_handler.dart';
 import 'package:notify/src/models/message.dart';
 import 'package:notify/src/services/back4app.dart';
 import 'package:notify/utils/connection_status.dart';
+import 'package:parse_server_sdk/parse_server_sdk.dart';
 // import 'package:notify/src/services/create_object.dart';
 
 part 'register_event.dart';
@@ -106,22 +107,24 @@ class RegisterBloc extends ChangeNotifier {
       _inState.add(AppState.loading);
       // print('Submitted Register Form ${_registerFormFields.show()}');
       //* create account at BACK4APP if failed display error in AlertDialog
-      await _b4a.logout(); //! but first make sure user not logged in
+      await _b4a.logout(_liveQuery); //! but first make sure user not logged in
+      _liveQuery = null;
       _msg.clear(); // clear local message repository
       final error = await _b4a.registerWith(registerFormFields);
       if (error != null) {
         // Alert() is common usage UI and it needs additional information
         // The revert point is one of this
         // We using ErrorHandler singleton to pass extra information
-        _errorHandler.revert = SwitchToRegisterEvent();
+        _errorHandler.revertEvent = SwitchToRegisterEvent();
         _errorHandler.message = error;
         _inState.add(AppState.error);
       } else {
         // read all messages from server to local repository
         await _initMessageHandler();
         // subscribe to LiveQuery on 'Messages'
-        _liveQuery = await _b4a.initiateLiveQuery(
-            registerFormFields.name, _msg, _regFormEventCtrl.sink);
+        _liveQuery ??= await _b4a.initiateLiveQuery(
+            registerFormFields.name, _msg, _regFormEventCtrl.sink,
+            mark: '1');
         _inState.add(AppState.authenticated); // show Home()
       }
       return;
@@ -137,15 +140,16 @@ class RegisterBloc extends ChangeNotifier {
         // Alert() is common usage UI and it needs additional information
         // The revert point is one of this
         // We using ErrorHandler singleton to pass extra information
-        _errorHandler.revert = SwitchToSigninEvent();
+        _errorHandler.revertEvent = SwitchToSigninEvent();
         _errorHandler.message = error;
         _inState.add(AppState.error);
       } else {
         // read all messages from server to local repository
         await _initMessageHandler();
         // subscribe to LiveQuery on 'Messages'
-        _liveQuery = await _b4a.initiateLiveQuery(
-            registerFormFields.name, _msg, _regFormEventCtrl.sink);
+        _liveQuery ??= await _b4a.initiateLiveQuery(
+            registerFormFields.name, _msg, _regFormEventCtrl.sink,
+            mark: '2');
         // and generate event via provided sink
         _inState.add(AppState.authenticated); // showHome()
       }
@@ -164,7 +168,8 @@ class RegisterBloc extends ChangeNotifier {
       //* SignOut event handler
     } else if (event is UserLogoutEvent) {
       _inState.add(AppState.loading);
-      await _b4a.logout();
+      await _b4a.logout(_liveQuery); // liveQUery must be unsubscribed
+      _liveQuery = null;
       initData(); // show Signin()
       return;
 
@@ -197,6 +202,15 @@ class RegisterBloc extends ChangeNotifier {
       //**************************************/
       //* Return to Home Screen event handling
     } else if (event is NavigateToHomeEvent) {
+      print('@@@@@@@@@@@@@@@ NavigateToHomeEvent Handler @@@@@@@@@@@@@@@@@@');
+      if (_b4a.isEda) {
+        // iniation of EDA60K user environment takes place here
+        _msg.clear(); // clear local message repository
+        await _initMessageHandler();
+        _liveQuery ??= await _b4a.initiateLiveQuery(
+            registerFormFields.name, _msg, _regFormEventCtrl.sink,
+            mark: '3');
+      }
       _inState.add(AppState.authenticated);
     }
     return;
@@ -235,13 +249,16 @@ class RegisterBloc extends ChangeNotifier {
       print('---------------------$result');
       //* initialize RegisterFormFields since user is active in b4a
       registerFormFields.setField(result);
+      // if (!_b4a.isEda) {
       //* read from server all messages addressed for this user
       await _initMessageHandler();
       //* built list of contacts
       await _b4a.getAddressees(_addressees);
       //* subscrive for receiving of new messages
       await _b4a.initiateLiveQuery(
-          registerFormFields.name, _msg, _regFormEventCtrl.sink);
+          registerFormFields.name, _msg, _regFormEventCtrl.sink,
+          mark: "4");
+      // }
       _inState.add(AppState.authenticated);
     } else {
       if (_b4a.isEda)
@@ -287,22 +304,27 @@ class RegisterBloc extends ChangeNotifier {
     if (!isOffline) {
       print('*****connection restored******');
       print(uiState);
-      // reset app for proper initializationof LiveQuery with delay
-      await Future.delayed(Duration(seconds: 7));
-      _liveQuery = await _b4a.initiateLiveQuery(
-          registerFormFields.name, _msg, _regFormEventCtrl.sink);
+      // reset app for proper initialization of LiveQuery with delay
+      await Future.delayed(Duration(seconds: 3));
+      _liveQuery ??= await _b4a.initiateLiveQuery(
+          registerFormFields.name, _msg, _regFormEventCtrl.sink,
+          mark: '5');
       // _inState.add(AppState.reset);
       // initData();
     } else {
       print('@@@@@@@@@ Inetrnet lost @@@@@@@@@');
+      // _liveQuery = null;
       print(uiState);
+      // _errorHandler.revertEvent = null;
+      // _errorHandler.message = "Network connection lost, service not availible!";
+      // _inState.add(AppState.error);
     }
   }
 
   checkOnNetworkTimeout() {
     if (uiState == UIState.loading) {
-      _errorHandler.revert = SwitchToSigninEvent();
-      _errorHandler.message =
+      _errorHandler.revertEvent = SwitchToSigninEvent();
+      _errorHandler.message = 
           "Network connection to slow or lost, please try again later.";
       _inState.add(AppState.error);
       uiState = UIState.zero;

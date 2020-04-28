@@ -62,32 +62,39 @@ class _IntroduceYourselfState extends State<IntroduceYourself> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: EdgeInsets.fromLTRB(50, 50, 50, 10),
-        child: Column(
-          children: <Widget>[
-            Text('Welcome to Notify', style: TextStyle(fontSize: 24)),
-            SizedBox(height: 15),
-            Text('Enter your username', style: TextStyle(fontSize: 20)),
-            SizedBox(height: 10),
-            TextField(
-              controller: _textController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Your name',
+      body: SingleChildScrollView(
+        child: Container(
+          padding: EdgeInsets.fromLTRB(50, 50, 50, 10),
+          child: Column(
+            children: <Widget>[
+              Image.asset(
+                'images/bohnenkamp.png',
+                width: 150,
               ),
-            ),
-            SizedBox(height: 10),
-            errorMsg != '' ? error() : isLoading ? progress() : fillbox(),
-            ButtonTheme(
-              minWidth: double.infinity,
-              height: 50.0,
-              child: RaisedButton(
-                child: Text('Submit'),
-                onPressed: isButtonValid ? nameSubmitted : null,
+              // Text('Welcome to Notify', style: TextStyle(fontSize: 24)),
+              SizedBox(height: 15),
+              Text('Enter your username', style: TextStyle(fontSize: 20)),
+              SizedBox(height: 10),
+              TextField(
+                controller: _textController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Your name',
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: 10),
+              errorMsg != '' ? error() : isLoading ? progress() : fillbox(),
+              ButtonTheme(
+                minWidth: double.infinity,
+                height: 50.0,
+                child: RaisedButton(
+                  color: Colors.tealAccent[700],
+                  child: Text('Submit', style: TextStyle(fontSize: 18)),
+                  onPressed: isButtonValid ? nameSubmitted : null,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
