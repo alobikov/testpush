@@ -16,12 +16,7 @@ class ParseService {
   factory ParseService() => _instance;
   ParseService._internal();
 
-  static const String PARSE_APP_ID = 'iCYTGvNAatQe64smIVqoOidyKKoPx4N0qq3zdH2o';
-  static const String PARSE_APP_URL = 'https://parseapi.back4app.com';
-  static const String MASTER_KEY = 'lTkaAkYe0jKDFfFEpdWZmgs8jqQwBqwlQyDjKPBS';
-  static const String LIVE_QUERY_URL = 'wss://notifyme.back4app.io';
-  static const String CLIENT_KEY = '7nsbXEBwo8vRCpdr5Xua2SdnQ1k41M3tg8VHX0SR';
-  static const String REST_API_KEY = 'xQXI9GRGAOEi8t8392dm64YMw8U5SFjKaILcG7FU';
+
 
   Future<String> initParse() async {
     print('Back4app: Attempting to initialize back4app');
